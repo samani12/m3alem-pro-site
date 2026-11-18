@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://samani12.github.io/m3alem-pro-site/sitemap.xml

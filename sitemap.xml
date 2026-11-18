@@ -1,24 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/</loc>
-  </url>
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/climatisation-marrakech.html</loc>
-  </url>
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/electricien-marrakech.html</loc>
-  </url>
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/plombier-marrakech.html</loc>
-  </url>
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/refrigeration-marrakech.html</loc>
-  </url>
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/electromenager-marrakech.html</loc>
-  </url>
-  <url>
-    <loc>https://samani12.github.io/m3alem-pro-site/videosurveillance-marrakech.html</loc>
-  </url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/</loc></url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/climatisation-marrakech.html</loc></url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/electricien-marrakech.html</loc></url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/plombier-marrakech.html</loc></url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/refrigeration-marrakech.html</loc></url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/electromenager-marrakech.html</loc></url>
+  <url><loc>https://samani12.github.io/m3alem-pro-site/videosurveillance-marrakech.html</loc></url>
 </urlset>
