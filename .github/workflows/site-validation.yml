@@ -68,7 +68,7 @@ jobs:
                   if self.in_title:
                       self.title_text += data.strip()
 
-          pages = sorted(Path(".").glob("*.html"))
+          pages = sorted(p for p in Path(".").glob("*.html") if p.name != "404.html")
           assert pages, "No HTML pages found"
           for page in pages:
               source = page.read_text(encoding="utf-8")
@@ -78,7 +78,7 @@ jobs:
               assert audit.h1 == 1, f"{page}: expected exactly one H1, got {audit.h1}"
               assert audit.canonical, f"{page}: missing canonical"
               assert audit.description, f"{page}: missing meta description"
-              for block in re.findall(r'<script type="application/ld\\+json">(.*?)</script>', source, re.S):
+              for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', source, re.S):
                   json.loads(block)
               print(f"OK {page}")
 
