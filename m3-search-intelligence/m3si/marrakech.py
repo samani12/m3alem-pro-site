@@ -16,7 +16,7 @@ SERVICE_TERMS = {
     "videosurveillance": ("camera", "videosurveillance", "camera surveillance", "كاميرات", "مراقبة"),
 }
 LOCAL_TERMS = ("marrakech", "marrakesh", "مراكش", "guéliz", "gueliz", "hivernage", "targa", "daoudiate", "massira", "safi")
-BUY_INTENT = ("prix", "tarif", "devis", "installation", "reparation", "depannage", "urgence", "technicien", "service", "near me", "قريب", "ثمن", "إصلاح", "تركيب", "تقني")
+BUY_INTENT = ("prix", "tarif", "devis", "installation", "reparation", "depannage", "urgence", "technicien", "service", "near me", "قريب", "ثمن", "إصلاح", "اصلاح", "تركيب", "تقني", "فني", "صيانة", "خدمة", "تصليح")
 INFO_INTENT = ("comment", "pourquoi", "guide", "definition", "ما هو", "كيف")
 
 PAGE_MAP = {
@@ -31,6 +31,8 @@ PAGE_MAP = {
 def normalize_text(value: str) -> str:
     value = unicodedata.normalize("NFKD", str(value or "").lower())
     value = "".join(ch for ch in value if not unicodedata.combining(ch))
+    # Normalize common Arabic alef/ya variants before matching user queries.
+    value = value.translate(str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ى": "ي"}))
     value = re.sub(r"[^\w\s-]", " ", value, flags=re.UNICODE)
     return re.sub(r"\s+", " ", value).strip()
 
