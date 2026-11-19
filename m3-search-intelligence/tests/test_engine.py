@@ -22,6 +22,15 @@ class EngineTests(unittest.TestCase):
             ["https://example.com/contact", "https://example.com/services/"],
         )
 
+    def test_internal_links_reject_malformed_absolute_looking_urls(self):
+        links = internal_links(
+            "https://example.com/",
+            ["://bad", "http:///missing-host", "https:///missing-host",
+             "https://example.com/valid"],
+            "example.com",
+        )
+        self.assertEqual(links, ["https://example.com/valid"])
+
     def test_internal_links_ignore_non_string_values(self):
         links = internal_links("https://example.com/", [None, "", "https://example.com/a"], "example.com")
         self.assertEqual(links, ["https://example.com/a"])
