@@ -1,0 +1,27 @@
+name: M3 Search Intelligence tests
+
+on:
+  push:
+    paths:
+      - "m3-search-intelligence/**"
+      - ".github/workflows/m3si-tests.yml"
+  pull_request:
+    paths:
+      - "m3-search-intelligence/**"
+      - ".github/workflows/m3si-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: m3-search-intelligence
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m compileall -q .
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
