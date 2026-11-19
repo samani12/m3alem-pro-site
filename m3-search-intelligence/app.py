@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from m3si.engine import crawl_site, score_opportunity, normalize_url
 from m3si.marrakech import analyze_queries
+from m3si.csv_import import parse_number
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "m3si.sqlite3"
@@ -109,17 +110,14 @@ class Handler(BaseHTTPRequestHandler):
             count=0
             with LOCK, connect() as c:
                 for row in reader:
-                    q=get(row,"query","top queries","keyword","search query")
+                    q=get(row,"query","queries","requête","requêtes","requete","requetes","top queries","keyword","search query","الاستعلامات","طلبات البحث")
                     if not q.strip(): continue
-                    def num(v):
-                        try: return float(str(v).replace("%","").replace(",","").strip())
-                        except: return 0.0
-                    clicks=num(get(row,"clicks"))
-                    impr=num(get(row,"impressions"))
-                    ctrv=get(row,"ctr")
-                    ctr=num(ctrv)
+                    clicks=parse_number(get(row,"clicks","clics","النقرات"))
+                    impr=parse_number(get(row,"impressions","مرات الظهور"))
+                    ctrv=get(row,"ctr","taux de clics","taux de clic","نسبة النقر")
+                    ctr=parse_number(ctrv)
                     if "%" in str(ctrv) or ctr>1: ctr/=100
-                    pos=num(get(row,"position","average position","avg position"))
+                    pos=parse_number(get(row,"position","average position","avg position","position moyenne","الموضع","متوسط الموضع"))
                     c.execute("INSERT OR REPLACE INTO queries VALUES (?,?,?,?,?,?,?)",
                       (q.strip(),clicks,impr,ctr,pos,"CSV",datetime.now(timezone.utc).isoformat()))
                     count+=1
