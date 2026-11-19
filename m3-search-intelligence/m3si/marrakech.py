@@ -15,7 +15,7 @@ SERVICE_TERMS = {
     "electromenager": ("electromenager", "lave linge", "machine a laver", "refrigerateur"),
     "videosurveillance": ("camera", "videosurveillance", "camera surveillance", "كاميرات", "مراقبة"),
 }
-LOCAL_TERMS = ("marrakech", "marrakesh", "مراكش", "guéliz", "gueliz", "hivernage", "targa", "daoudiate", "massira", "safi")
+LOCAL_TERMS = ("marrakech", "marrakesh", "مراكش", "guéliz", "gueliz", "hivernage", "targa", "daoudiate", "massira")
 BUY_INTENT = ("prix", "tarif", "devis", "installation", "reparation", "depannage", "urgence", "technicien", "service", "near me", "قريب", "ثمن", "إصلاح", "تركيب", "تقني")
 INFO_INTENT = ("comment", "pourquoi", "guide", "definition", "ما هو", "كيف")
 
