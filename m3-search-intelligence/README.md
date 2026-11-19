@@ -40,6 +40,9 @@ Database: `data/m3si.sqlite3` on the machine running the app. Back it up regular
 ## Safety
 The crawler is read-only. It respects robots.txt, limits pages, uses a delay, blocks cross-host redirects, and does not execute JavaScript. Search opportunities are recommendations, not promises of rankings or leads.
 
+## Google Search Console setup
+See [GOOGLE-SEARCH-CONSOLE-SETUP.md](GOOGLE-SEARCH-CONSOLE-SETUP.md) for the secure OAuth preparation steps. CSV remains the active import path until OAuth is authorized.
+
 ## Roadmap
 1. OAuth-based Search Console API connection.
 2. Bing Webmaster API connection.
