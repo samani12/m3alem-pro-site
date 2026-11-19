@@ -23,8 +23,14 @@ def internal_links(page_url, hrefs, host):
     for href in hrefs:
         if not isinstance(href, str) or not href.strip():
             continue
+        raw_href = href.strip()
+        lowered_href = raw_href.lower()
+        # urljoin treats malformed absolute-looking URLs as relative paths.
+        # Reject these before resolution so they cannot become same-host URLs.
+        if lowered_href.startswith(("://", "http:///", "https:///")):
+            continue
         try:
-            candidate = normalize_url(urljoin(page_url, href))
+            candidate = normalize_url(urljoin(page_url, raw_href))
             parsed = urlparse(candidate)
         except (TypeError, ValueError):
             continue
