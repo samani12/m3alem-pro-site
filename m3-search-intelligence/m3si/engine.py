@@ -21,6 +21,8 @@ def internal_links(page_url, hrefs, host):
     """Return valid HTTP(S) links for this host; ignore mailto/js/tel and malformed hrefs."""
     found = []
     for href in hrefs:
+        if not isinstance(href, str) or not href.strip():
+            continue
         try:
             candidate = normalize_url(urljoin(page_url, href))
             parsed = urlparse(candidate)
