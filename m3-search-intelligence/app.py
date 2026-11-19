@@ -52,7 +52,7 @@ a{{color:#f1d6a4}}.actions{{display:flex;gap:12px;flex-wrap:wrap;align-items:cen
 <section class="panel"><h2>2) استيراد بيانات البحث CSV</h2><p>حمّل تصدير Queries من Google Search Console أو Bing Webmaster Tools.</p><form class="actions" method="post" action="/import" enctype="multipart/form-data"><input type="file" name="csvfile" accept=".csv,text/csv" required><button>استيراد وتحليل</button></form></section>
 <section class="panel"><h2>3) فرص الكلمات المفتاحية</h2><p class="muted">النقاط ترتيب أولويات داخلي وليست توقعاً للترتيب أو عدد الزبائن.</p><table><thead><tr><th>الكلمة</th><th>النقرات</th><th>الظهور</th><th>CTR</th><th>الموضع</th><th>الأولوية</th></tr></thead><tbody>{rows or '<tr><td colspan="6">مازال ما دخلات حتى بيانات. صدّر CSV من Search Console.</td></tr>'}</tbody></table></section>
 <section class="panel"><h2>4) الصفحات التي تم فحصها</h2><table><thead><tr><th>الرابط</th><th>العنوان</th><th>الكلمات</th><th>HTTP</th></tr></thead><tbody>{page_rows or '<tr><td colspan="4">مازال ما تفحص حتى صفحة.</td></tr>'}</tbody></table></section>
-<p class="muted">V0.1 · لا توجد مفاتيح API داخل المشروع · لا يتم تعديل الموقع تلقائياً.</p></main></html>"""
+<p class="muted">V0.2 · لا توجد مفاتيح API داخل المشروع · لا يتم تعديل الموقع تلقائياً.</p></main></html>"""
 
 class Handler(BaseHTTPRequestHandler):
     def send(self, code, body, ctype="text/html; charset=utf-8"):
@@ -64,7 +64,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/":
             return self.send(200, page())
         if self.path == "/health":
-            return self.send(200, json.dumps({"ok":True,"version":"0.1"}), "application/json")
+            return self.send(200, json.dumps({"ok":True,"version":"0.2"}), "application/json")
         return self.send(404, "Not found")
     def do_POST(self):
         if self.path == "/crawl":

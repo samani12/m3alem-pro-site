@@ -1,8 +1,10 @@
-# M3 Search Intelligence — V0.1
+# M3 Search Intelligence — V0.2
 
 A locally owned SEO intelligence workspace for the M3ALEM-PRO website.
 
 ## What this version does
+- Ignores non-web links such as mailto:, tel: and javascript: instead of aborting a crawl.
+- Caps crawler page count, timeout and delay values to conservative limits.
 - Crawls only the configured website host, with a page limit, timeout, robots.txt checks and same-host redirect protection.
 - Stores page metadata in a local SQLite database.
 - Imports Google Search Console / Bing Webmaster CSV exports.
