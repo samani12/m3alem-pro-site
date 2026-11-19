@@ -22,8 +22,12 @@ class EngineTests(unittest.TestCase):
             ["https://example.com/contact", "https://example.com/services/"],
         )
 
-    def test_internal_links_ignore_non_string_values(self):
-        links = internal_links("https://example.com/", [None, "", "https://example.com/a"], "example.com")
+    def test_internal_links_ignore_non_string_and_malformed_values(self):
+        links = internal_links(
+            "https://example.com/",
+            [None, "", "://bad", "https://example.com/a"],
+            "example.com",
+        )
         self.assertEqual(links, ["https://example.com/a"])
 
     def test_score_is_bounded(self):
