@@ -42,7 +42,13 @@ class SiteSEOTests(unittest.TestCase):
             self.assertTrue((REPO_ROOT / relative).is_file(), relative)
 
     def test_each_public_page_has_unique_core_metadata(self):
-        pages = sorted(REPO_ROOT.glob("*.html"))
+        sitemap = ET.parse(REPO_ROOT / "sitemap.xml").getroot()
+        ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        urls = [node.text for node in sitemap.findall("sm:url/sm:loc", ns)]
+        pages = []
+        for url in urls:
+            relative = url[len(SITE_URL):] or "index.html"
+            pages.append(REPO_ROOT / relative)
         self.assertTrue(pages)
         for path in pages:
             parser = MetadataParser()
