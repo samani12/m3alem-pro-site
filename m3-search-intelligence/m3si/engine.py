@@ -23,6 +23,10 @@ def internal_links(page_url, hrefs, host):
     for href in hrefs:
         if not isinstance(href, str) or not href.strip():
             continue
+        # urljoin treats malformed strings such as "://bad" as relative paths.
+        # Reject these malformed URL-like values before resolving them.
+        if href.lstrip().startswith("://"):
+            continue
         try:
             candidate = normalize_url(urljoin(page_url, href))
             parsed = urlparse(candidate)
