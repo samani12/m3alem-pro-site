@@ -1,49 +1,45 @@
-name: Website SEO validation
+name: Website quality checks
 
 on:
   pull_request:
     branches: [main]
-    paths:
-      - "*.html"
-      - "sitemap.xml"
-      - "robots.txt"
-      - ".github/workflows/site-validation.yml"
   push:
     branches: [main]
-    paths:
-      - "*.html"
-      - "sitemap.xml"
-      - "robots.txt"
-      - ".github/workflows/site-validation.yml"
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  validate-site:
+  html-and-links:
+    name: HTML, SEO metadata and internal links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - name: Validate indexed pages, metadata, structured data and sitemap
+      - name: Validate HTML pages, canonical URLs, JSON-LD and sitemap
         run: |
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
           from urllib.parse import urlparse
           import json
-          import re
           import xml.etree.ElementTree as ET
 
           SITE = "https://samani12.github.io/m3alem-pro-site/"
 
-          class Audit(HTMLParser):
+          class PageAudit(HTMLParser):
               def __init__(self):
                   super().__init__()
-                  self.title_text = ""
+                  self.title = ""
                   self.in_title = False
                   self.h1 = 0
                   self.canonical = None
                   self.description = None
+                  self.jsonld = []
+                  self.in_jsonld = False
+                  self.jsonld_text = ""
 
               def handle_starttag(self, tag, attrs):
                   attrs = dict(attrs)
@@ -55,41 +51,60 @@ jobs:
                       self.canonical = attrs.get("href")
                   elif tag == "meta" and attrs.get("name", "").lower() == "description":
                       self.description = attrs.get("content")
+                  elif tag == "script" and attrs.get("type") == "application/ld+json":
+                      self.in_jsonld = True
+                      self.jsonld_text = ""
 
               def handle_endtag(self, tag):
                   if tag == "title":
                       self.in_title = False
+                  elif tag == "script" and self.in_jsonld:
+                      self.jsonld.append(self.jsonld_text)
+                      self.in_jsonld = False
 
               def handle_data(self, data):
                   if self.in_title:
-                      self.title_text += data.strip()
+                      self.title += data.strip()
+                  if self.in_jsonld:
+                      self.jsonld_text += data
 
           sitemap = ET.parse("sitemap.xml").getroot()
-          namespace = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-          locations = [node.text for node in sitemap.findall("sm:url/sm:loc", namespace)]
-          assert locations, "Sitemap contains no URLs"
-          assert len(locations) == len(set(locations)), "Sitemap contains duplicate URLs"
+          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          urls = [n.text for n in sitemap.findall("sm:url/sm:loc", ns)]
+          assert urls and len(urls) == len(set(urls)), "Sitemap is empty or has duplicate URLs"
 
-          for url in locations:
+          for url in urls:
               assert url and url.startswith(SITE), f"Unexpected sitemap URL: {url}"
-              path = urlparse(url).path
-              relative = path.removeprefix("/m3alem-pro-site/") or "index.html"
+              relative = urlparse(url).path.removeprefix("/m3alem-pro-site/") or "index.html"
               page = Path(relative)
-              assert page.is_file(), f"Sitemap URL has no matching file: {url}"
-
-              source = page.read_text(encoding="utf-8")
-              audit = Audit()
-              audit.feed(source)
-              assert audit.title_text.strip(), f"{page}: missing title"
-              assert audit.h1 == 1, f"{page}: expected exactly one H1, got {audit.h1}"
-              assert audit.canonical == url, f"{page}: canonical mismatch ({audit.canonical})"
+              assert page.is_file(), f"Missing page for sitemap URL: {url}"
+              audit = PageAudit()
+              audit.feed(page.read_text(encoding="utf-8"))
+              assert audit.title.strip(), f"{page}: missing title"
+              assert audit.h1 == 1, f"{page}: expected one H1, found {audit.h1}"
+              assert audit.canonical == url, f"{page}: canonical URL mismatch"
               assert audit.description and audit.description.strip(), f"{page}: missing meta description"
-
-              blocks = re.findall(r'<script\s+type=["\\']application/ld\+json["\\']\s*>(.*?)</script>', source, re.S | re.I)
-              assert blocks, f"{page}: missing JSON-LD"
-              for block in blocks:
+              assert audit.jsonld, f"{page}: missing JSON-LD"
+              for block in audit.jsonld:
                   json.loads(block)
-              print(f"OK {page}")
+              print(f"PASS {page}")
 
-          print(f"OK sitemap.xml ({len(locations)} indexed pages)")
+          print(f"PASS sitemap: {len(urls)} pages")
           PY
+      - name: Check internal links with Lychee (open source)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --verbose --no-progress './**/*.html' './**/*.css' './*.xml'
+          fail: true
+          jobSummary: true
+
+  lighthouse:
+    name: Lighthouse performance, accessibility and SEO audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run Lighthouse CI against all static pages
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
