@@ -1,0 +1,67 @@
+name: AI SEO and GEO audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 7 * * 2"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-seo-geo-audit
+  cancel-in-progress: true
+
+jobs:
+  codoseo:
+    name: Technical SEO and AI crawler access
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install and run CodoSEO
+        run: |
+          npx --yes codoseo crawl https://samani12.github.io/m3alem-pro-site/ \
+            --max-pages 100 \
+            --max-time 600 \
+            --probes \
+            --format github \
+            --save codoseo-report.json \
+            --fail-on critical
+
+      - name: Upload CodoSEO report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3alem-pro-codoseo-report
+          path: codoseo-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  geo:
+    name: AI search readiness (GEO)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Audit ChatGPT, Gemini, Perplexity and AI search readiness
+        id: geo-audit
+        uses: Auriti-Labs/geo-optimizer-skill@v4.17.1
+        with:
+          url: https://samani12.github.io/m3alem-pro-site/
+          min-score: "0"
+          format: json
+          output-file: m3alem-pro-geo-report
+
+      - name: Upload GEO report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3alem-pro-geo-report
+          path: m3alem-pro-geo-report.json
+          if-no-files-found: warn
+          retention-days: 30
