@@ -7,7 +7,7 @@ A locally owned SEO intelligence workspace for the M3ALEM-PRO website.
 - Caps crawler page count, timeout and delay values to conservative limits.
 - Crawls only the configured website host, with a page limit, timeout, robots.txt checks and same-host redirect protection.
 - Stores page metadata in a local SQLite database.
-- Imports Google Search Console / Bing Webmaster CSV exports.
+- Imports Google Search Console / Bing Webmaster CSV exports, including common French and Arabic column labels and decimal-comma values.
 - Scores query opportunities using impressions, CTR gap, and average position.
 - Classifies Arabic/French/Latin local queries for Marrakech and service intent.
 - Ranks local commercial opportunities and maps them to existing service pages.
