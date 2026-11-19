@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 from m3si.engine import crawl_site, score_opportunity, normalize_url
+from m3si.marrakech import analyze_queries
 
 ROOT = Path(__file__).resolve().parent
 DB = ROOT / "data" / "m3si.sqlite3"
@@ -38,6 +39,11 @@ def page():
         pages = c.execute("SELECT * FROM pages ORDER BY crawled_at DESC LIMIT 100").fetchall()
         queries = c.execute("SELECT * FROM queries ORDER BY impressions DESC LIMIT 100").fetchall()
     rows = "".join(f"<tr><td>{esc(r['query'])}</td><td>{r['clicks'] or 0:g}</td><td>{r['impressions'] or 0:g}</td><td>{(r['ctr'] or 0):.1%}</td><td>{(r['position'] or 0):.1f}</td><td>{score_opportunity(r['impressions'] or 0,r['ctr'] or 0,r['position'] or 0)}</td></tr>" for r in queries)
+    local_rows = analyze_queries([dict(r) for r in queries])
+    local_html = "".join(
+        f"<tr><td>{esc(x['query'])}</td><td>{x['score']:.1f}/100</td><td>{esc(x['intent'])}</td><td>{esc(', '.join(x['services']))}</td><td>{esc(x['recommended_page'] or 'تحتاج تصنيف يدوي')}</td></tr>"
+        for x in local_rows[:30]
+    )
     page_rows = "".join(f"<tr><td><a href='{esc(r['url'])}' target='_blank' rel='noopener'>{esc(r['url'])}</a></td><td>{esc(r['title'])}</td><td>{r['word_count'] or 0}</td><td>{r['status'] or 0}</td></tr>" for r in pages)
     return f"""<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>M3 Search Intelligence</title><style>
@@ -51,8 +57,9 @@ a{{color:#f1d6a4}}.actions{{display:flex;gap:12px;flex-wrap:wrap;align-items:cen
 <section class="panel"><h2>1) فحص صفحات الموقع</h2><p>فحص محدود وآمن لنفس النطاق، مع احترام robots.txt.</p><form method="post" action="/crawl"><button>ابدأ الفحص</button></form></section>
 <section class="panel"><h2>2) استيراد بيانات البحث CSV</h2><p>حمّل تصدير Queries من Google Search Console أو Bing Webmaster Tools.</p><form class="actions" method="post" action="/import" enctype="multipart/form-data"><input type="file" name="csvfile" accept=".csv,text/csv" required><button>استيراد وتحليل</button></form></section>
 <section class="panel"><h2>3) فرص الكلمات المفتاحية</h2><p class="muted">النقاط ترتيب أولويات داخلي وليست توقعاً للترتيب أو عدد الزبائن.</p><table><thead><tr><th>الكلمة</th><th>النقرات</th><th>الظهور</th><th>CTR</th><th>الموضع</th><th>الأولوية</th></tr></thead><tbody>{rows or '<tr><td colspan="6">مازال ما دخلات حتى بيانات. صدّر CSV من Search Console.</td></tr>'}</tbody></table></section>
-<section class="panel"><h2>4) الصفحات التي تم فحصها</h2><table><thead><tr><th>الرابط</th><th>العنوان</th><th>الكلمات</th><th>HTTP</th></tr></thead><tbody>{page_rows or '<tr><td colspan="4">مازال ما تفحص حتى صفحة.</td></tr>'}</tbody></table></section>
-<p class="muted">V0.2 · لا توجد مفاتيح API داخل المشروع · لا يتم تعديل الموقع تلقائياً.</p></main></html>"""
+<section class="panel"><h2>4) M3 Marrakech SEO Intelligence</h2><p class="muted">ترتيب فرص محلية حسب نية الشراء، ارتباط الخدمة، الظهور وCTR. هذا مؤشر أولوية وليس توقع ترتيب.</p><table><thead><tr><th>الكلمة</th><th>الأولوية</th><th>النية</th><th>الخدمة</th><th>الصفحة المقترحة</th></tr></thead><tbody>{local_html or '<tr><td colspan="5">أدخل بيانات Queries من Search Console لتفعيل التحليل.</td></tr>'}</tbody></table></section>
+<section class="panel"><h2>5) الصفحات التي تم فحصها</h2><table><thead><tr><th>الرابط</th><th>العنوان</th><th>الكلمات</th><th>HTTP</th></tr></thead><tbody>{page_rows or '<tr><td colspan="4">مازال ما تفحص حتى صفحة.</td></tr>'}</tbody></table></section>
+<p class="muted">M3 Marrakech SEO Engine V1 · لا توجد مفاتيح API داخل المشروع · لا يتم تعديل الموقع تلقائياً.</p></main></html>"""
 
 class Handler(BaseHTTPRequestHandler):
     def send(self, code, body, ctype="text/html; charset=utf-8"):

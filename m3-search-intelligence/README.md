@@ -1,4 +1,4 @@
-# M3 Search Intelligence — V0.2
+# M3 Search Intelligence — Marrakech SEO V1
 
 A locally owned SEO intelligence workspace for the M3ALEM-PRO website.
 
@@ -9,7 +9,13 @@ A locally owned SEO intelligence workspace for the M3ALEM-PRO website.
 - Stores page metadata in a local SQLite database.
 - Imports Google Search Console / Bing Webmaster CSV exports.
 - Scores query opportunities using impressions, CTR gap, and average position.
+- Classifies Arabic/French/Latin local queries for Marrakech and service intent.
+- Ranks local commercial opportunities and maps them to existing service pages.
+- Generates safe content briefs for the six existing service categories.
+- Integrates local SEO priorities into the Arabic dashboard.
 - Shows a local Arabic dashboard.
+
+See [MARRAKECH-SEO-ARCHITECTURE.md](MARRAKECH-SEO-ARCHITECTURE.md) for scoring factors, architecture and safety rules.
 
 ## What it does NOT do yet
 - It is not hosted or continuously running.
