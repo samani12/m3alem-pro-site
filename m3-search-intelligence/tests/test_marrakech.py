@@ -1,7 +1,14 @@
 import unittest
+from m3si.csv_import import parse_number
 from m3si.marrakech import classify_query, opportunity_score, analyze_queries, build_service_keyword_map, generate_content_brief
 
 class MarrakechSEOTests(unittest.TestCase):
+    def test_csv_number_parsing(self):
+        self.assertEqual(parse_number("1,25"), 1.25)
+        self.assertEqual(parse_number("1 234,5"), 1234.5)
+        self.assertEqual(parse_number("1,234.5"), 1234.5)
+        self.assertEqual(parse_number("12%"), 12.0)
+
     def test_local_commercial_query(self):
         r = classify_query("technicien climatisation Marrakech prix")
         self.assertTrue(r["local_intent"])
