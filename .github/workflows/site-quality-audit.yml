@@ -1,0 +1,61 @@
+name: Open-source website quality audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-quality-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Link check and Lighthouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check deployed website links
+        run: |
+          npx --yes linkinator@6 https://samani12.github.io/m3alem-pro-site/ \
+            --recurse --timeout 15000 --concurrency 5
+
+      - name: Run Lighthouse on all service pages
+        run: |
+          mkdir -p lighthouse-reports
+          urls=(
+            "https://samani12.github.io/m3alem-pro-site/"
+            "https://samani12.github.io/m3alem-pro-site/climatisation-marrakech.html"
+            "https://samani12.github.io/m3alem-pro-site/electricien-marrakech.html"
+            "https://samani12.github.io/m3alem-pro-site/plombier-marrakech.html"
+            "https://samani12.github.io/m3alem-pro-site/refrigeration-marrakech.html"
+            "https://samani12.github.io/m3alem-pro-site/electromenager-marrakech.html"
+            "https://samani12.github.io/m3alem-pro-site/videosurveillance-marrakech.html"
+          )
+          for i in "${!urls[@]}"; do
+            npx --yes lighthouse@13 "${urls[$i]}" \
+              --chrome-flags="--headless --no-sandbox" \
+              --only-categories=performance,accessibility,best-practices,seo \
+              --output=json \
+              --output-path="lighthouse-reports/page-$((i+1)).json"
+          done
+
+      - name: Save audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3alem-pro-lighthouse-reports
+          path: lighthouse-reports/
+          if-no-files-found: warn
+          retention-days: 14
