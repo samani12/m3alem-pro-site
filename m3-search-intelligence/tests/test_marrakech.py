@@ -13,6 +13,17 @@ class MarrakechSEOTests(unittest.TestCase):
         self.assertTrue(r["local_intent"])
         self.assertIn("climatisation", r["services"])
 
+    def test_arabic_spelling_variants_match_transactional_intent(self):
+        r = classify_query("اصلاح مكيف في مراكش")
+        self.assertTrue(r["transactional_intent"])
+        self.assertTrue(r["local_intent"])
+        self.assertIn("climatisation", r["services"])
+
+    def test_arabic_maintenance_query_matches_commercial_intent(self):
+        r = classify_query("فني صيانة مكيف بمراكش")
+        self.assertTrue(r["transactional_intent"])
+        self.assertIn("climatisation", r["services"])
+
     def test_score_is_bounded_and_explainable(self):
         r = opportunity_score("plombier Marrakech devis", 1200, 30, 0.01, 8)
         self.assertGreaterEqual(r["score"], 0)
