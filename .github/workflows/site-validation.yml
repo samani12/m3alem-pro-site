@@ -24,70 +24,72 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Validate HTML metadata, structured data and sitemap
+      - name: Validate indexed pages, metadata, structured data and sitemap
         run: |
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
+          from urllib.parse import urlparse
           import json
           import re
           import xml.etree.ElementTree as ET
 
+          SITE = "https://samani12.github.io/m3alem-pro-site/"
+
           class Audit(HTMLParser):
               def __init__(self):
                   super().__init__()
-                  self.title = False
-                  self.h1 = 0
-                  self.canonical = False
-                  self.description = False
-                  self.jsonld = False
-                  self.in_title = False
                   self.title_text = ""
+                  self.in_title = False
+                  self.h1 = 0
+                  self.canonical = None
+                  self.description = None
 
               def handle_starttag(self, tag, attrs):
                   attrs = dict(attrs)
                   if tag == "title":
                       self.in_title = True
-                  if tag == "h1":
+                  elif tag == "h1":
                       self.h1 += 1
-                  if tag == "link" and attrs.get("rel") == "canonical" and attrs.get("href"):
-                      self.canonical = True
-                  if tag == "meta" and attrs.get("name") == "description" and attrs.get("content"):
-                      self.description = True
-                  if tag == "script" and attrs.get("type") == "application/ld+json":
-                      self.jsonld = True
-                      self._in_jsonld = True
+                  elif tag == "link" and attrs.get("rel") == "canonical":
+                      self.canonical = attrs.get("href")
+                  elif tag == "meta" and attrs.get("name", "").lower() == "description":
+                      self.description = attrs.get("content")
 
               def handle_endtag(self, tag):
                   if tag == "title":
                       self.in_title = False
-                  if tag == "script":
-                      self._in_jsonld = False
 
               def handle_data(self, data):
                   if self.in_title:
                       self.title_text += data.strip()
 
-          pages = sorted(p for p in Path(".").glob("*.html") if p.name != "404.html")
-          assert pages, "No HTML pages found"
-          for page in pages:
-              source = page.read_text(encoding="utf-8")
-              audit = Audit()
-              audit.feed(source)
-              assert audit.title_text, f"{page}: missing title"
-              assert audit.h1 == 1, f"{page}: expected exactly one H1, got {audit.h1}"
-              assert audit.canonical, f"{page}: missing canonical"
-              assert audit.description, f"{page}: missing meta description"
-              for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', source, re.S):
-                  json.loads(block)
-              print(f"OK {page}")
-
           sitemap = ET.parse("sitemap.xml").getroot()
           namespace = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
           locations = [node.text for node in sitemap.findall("sm:url/sm:loc", namespace)]
           assert locations, "Sitemap contains no URLs"
+          assert len(locations) == len(set(locations)), "Sitemap contains duplicate URLs"
+
           for url in locations:
-              filename = url.rstrip("/").split("/")[-1] or "index.html"
-              assert Path(filename).is_file(), f"Sitemap URL has no matching file: {url}"
-          print(f"OK sitemap.xml ({len(locations)} URLs)")
+              assert url and url.startswith(SITE), f"Unexpected sitemap URL: {url}"
+              path = urlparse(url).path
+              relative = path.removeprefix("/m3alem-pro-site/") or "index.html"
+              page = Path(relative)
+              assert page.is_file(), f"Sitemap URL has no matching file: {url}"
+
+              source = page.read_text(encoding="utf-8")
+              audit = Audit()
+              audit.feed(source)
+              assert audit.title_text.strip(), f"{page}: missing title"
+              assert audit.h1 == 1, f"{page}: expected exactly one H1, got {audit.h1}"
+              assert audit.canonical == url, f"{page}: canonical mismatch ({audit.canonical})"
+              assert audit.description and audit.description.strip(), f"{page}: missing meta description"
+
+              blocks = re.findall(r'<script\s+type=["\\']application/ld\+json["\\']\s*>(.*?)</script>', source, re.S | re.I)
+              assert blocks, f"{page}: missing JSON-LD"
+              for block in blocks:
+                  json.loads(block)
+              print(f"OK {page}")
+
+          print(f"OK sitemap.xml ({len(locations)} indexed pages)")
           PY
