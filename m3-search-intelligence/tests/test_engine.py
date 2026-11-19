@@ -30,6 +30,10 @@ class EngineTests(unittest.TestCase):
         )
         self.assertEqual(links, ["https://example.com/a"])
 
+    def test_internal_links_reject_http_url_without_host(self):
+        links = internal_links("https://example.com/", ["http:///missing-host", "/valid"], "example.com")
+        self.assertEqual(links, ["https://example.com/valid"])
+
     def test_score_is_bounded(self):
         for impressions, ctr, position in [(0, 0, 0), (100000, 0, 5), (500, 0.2, 100)]:
             score = score_opportunity(impressions, ctr, position)
